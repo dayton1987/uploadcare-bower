@@ -1,6 +1,6 @@
 /*
- * Uploadcare (1.5.3lucas)
- * Date: 2015-01-15 09:40:36 +0000
+ * Uploadcare (1.5.3)
+ * Date: 2015-01-15 09:51:41 +0000
  * Rev: 1c815d2529
  */
 ;(function(uploadcare, SCRIPT_BASE){/*! jQuery v1.11.1 | (c) 2005, 2014 jQuery Foundation, Inc. | jquery.org/license */
@@ -9225,7 +9225,7 @@ this.Pusher = Pusher;
   var expose, key,
     __hasProp = {}.hasOwnProperty;
 
-  uploadcare.version = '1.5.3lucas';
+  uploadcare.version = '1.5.3';
 
   expose = uploadcare.expose;
 
@@ -9291,4 +9291,4 @@ this.Pusher = Pusher;
   jQuery.noConflict(true);
 
 }).call(this);
-}({}, '//ucarecdn.com/widget/1.5.3lucas/uploadcare/'));
+}({}, '//ucarecdn.com/widget/1.5.3/uploadcare/'));
