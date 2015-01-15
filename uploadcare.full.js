@@ -1,7 +1,7 @@
 /*
- * Uploadcare (1.5.3)
- * Date: 2014-12-30 12:46:16 +0300
- * Rev: 58cf69c9cc
+ * Uploadcare (1.5.3lucas)
+ * Date: 2015-01-15 09:40:36 +0000
+ * Rev: 1c815d2529
  */
 ;(function(uploadcare, SCRIPT_BASE){/*! jQuery v1.11.1 | (c) 2005, 2014 jQuery Foundation, Inc. | jquery.org/license */
 
@@ -7285,13 +7285,18 @@ this.Pusher = Pusher;
       return obj && obj.files && obj.promise;
     };
     utils.valueToGroup = function(value, settings) {
-      var files, item, _i, _len;
+      var files, item;
       if (value) {
         if ($.isArray(value)) {
-          for (_i = 0, _len = value.length; _i < _len; _i++) {
-            item = value[_i];
-            files = utils.valueToFile(item, settings);
-          }
+          files = (function() {
+            var _i, _len, _results;
+            _results = [];
+            for (_i = 0, _len = value.length; _i < _len; _i++) {
+              item = value[_i];
+              _results.push(utils.valueToFile(item, settings));
+            }
+            return _results;
+          })();
           value = uploadcare.FileGroup(files, settings);
         } else {
           if (!utils.isFileGroup(value)) {
@@ -8197,6 +8202,7 @@ this.Pusher = Pusher;
         });
         this.dialogApi.fileColl.onAdd.add(this.__setFile);
         this.widget = null;
+        this.isCropStarted = false;
       }
 
       PreviewTab.prototype.__setFile = function(file) {
@@ -8250,6 +8256,7 @@ this.Pusher = Pusher;
         img = this.element('image');
         done = this.element('done');
         imgSize = [info.originalImageInfo.width, info.originalImageInfo.height];
+        this.isCropStarted = false;
         imgLoader = utils.imageLoader(img.attr('src')).done(function() {
           return _this.element('root').addClass('uploadcare-dialog-preview--loaded');
         }).fail(function() {
@@ -8262,7 +8269,7 @@ this.Pusher = Pusher;
           done.removeClass('uploadcare-disabled-el');
           _this.widget = new CropWidget(img, imgSize, _this.settings.crop[0]);
           _this.widget.setSelectionFromModifiers(info.cdnUrlModifiers);
-          return done.click(function() {
+          done.click(function() {
             var opts;
             opts = _this.widget.getSelectionWithModifiers();
             return _this.dialogApi.fileColl.replace(_this.file, _this.file.then(function(info) {
@@ -8272,15 +8279,29 @@ this.Pusher = Pusher;
               return info;
             }));
           });
+          return _this.isCropStarted = true;
         };
         if (this.settings.crop) {
           this.element('title').text(t('dialog.tabs.preview.crop.title'));
-          done.addClass('uploadcare-disabled-el');
           done.text(t('dialog.tabs.preview.crop.done'));
-          this.populateCropSizes();
-          return imgLoader.done(function() {
-            return utils.defer(startCrop);
-          });
+          if (info.cdnUrlModifiers) {
+            done.addClass('uploadcare-disabled-el');
+            this.populateCropSizes();
+            return imgLoader.done(function() {
+              return utils.defer(startCrop);
+            });
+          } else {
+            return this.element('image').on('mousedown', function(e) {
+              if (_this.isCropStarted) {
+                return;
+              }
+              done.addClass('uploadcare-disabled-el');
+              _this.populateCropSizes();
+              return imgLoader.done(function() {
+                return utils.defer(startCrop);
+              });
+            });
+          }
         }
       };
 
@@ -8375,9 +8396,9 @@ this.Pusher = Pusher;
         this.__updateContainerView();
         this.dialogApi.fileColl.onAdd.add([this.__fileAdded, this.__updateContainerView]);
         this.dialogApi.fileColl.onRemove.add([this.__fileRemoved, this.__updateContainerView]);
-        this.dialogApi.fileColl.onAnyProgress.add(this.__fileProgress);
         this.dialogApi.fileColl.onAnyDone.add(this.__fileDone);
         this.dialogApi.fileColl.onAnyFail.add(this.__fileFailed);
+        this.dialogApi.fileColl.onAnyProgress.add(this.__fileProgress);
         this.__setupSorting();
       }
 
@@ -8423,19 +8444,24 @@ this.Pusher = Pusher;
         return this.mobileTitleEl.toggleClass('uploadcare-error', tooManyFiles || tooFewFiles).text(tooManyFiles || tooFewFiles ? footer : title);
       };
 
-      PreviewTabMultiple.prototype.__fileProgress = function(file, progressInfo) {
-        var fileEl, info;
-        fileEl = this.__fileToEl(file);
-        this.__find('file-progressbar-value', fileEl).css('width', Math.round(progressInfo.progress * 100) + '%');
-        info = progressInfo.incompleteFileInfo;
+      PreviewTabMultiple.prototype.__updateFileInfo = function(fileEl, info) {
         this.__find('file-name', fileEl).text(info.name || t('dialog.tabs.preview.unknownName'));
         return this.__find('file-size', fileEl).text(utils.readableFileSize(info.size, '–'));
+      };
+
+      PreviewTabMultiple.prototype.__fileProgress = function(file, progressInfo) {
+        var fileEl;
+        fileEl = this.__fileToEl(file);
+        this.__find('file-progressbar-value', fileEl).css('width', Math.round(progressInfo.progress * 100) + '%');
+        return this.__updateFileInfo(fileEl, progressInfo.incompleteFileInfo);
       };
 
       PreviewTabMultiple.prototype.__fileDone = function(file, info) {
         var fileEl;
         fileEl = this.__fileToEl(file);
         fileEl.addClass(CLASS_PREFIX + 'uploaded');
+        this.__find('file-progressbar-value', fileEl).css('width', '100%');
+        this.__updateFileInfo(fileEl, info);
         if (info.isImage) {
           return this.__find('file-preview-wrap', fileEl).html($('<img>').attr({
             src: "" + info.originalUrl + "-/scale_crop/90x90/center/"
@@ -9199,7 +9225,7 @@ this.Pusher = Pusher;
   var expose, key,
     __hasProp = {}.hasOwnProperty;
 
-  uploadcare.version = '1.5.3';
+  uploadcare.version = '1.5.3lucas';
 
   expose = uploadcare.expose;
 
@@ -9265,4 +9291,4 @@ this.Pusher = Pusher;
   jQuery.noConflict(true);
 
 }).call(this);
-}({}, '//ucarecdn.com/widget/1.5.3/uploadcare/'));
+}({}, '//ucarecdn.com/widget/1.5.3lucas/uploadcare/'));
